@@ -1,16 +1,19 @@
-"""add users and roles
+"""add user and role models
 
-Revision ID: 42cb05baf339
+Revision ID: bbaaea2a3082
 Revises: 
-Create Date: 2023-10-23 23:34:41.119341
+Create Date: 2023-10-25 07:01:57.525994
 
 """
 from alembic import op
 import sqlalchemy as sa
+from uuid import uuid4
+from datetime import datetime
+from sqlalchemy.sql import table, column
 
 
 # revision identifiers, used by Alembic.
-revision = '42cb05baf339'
+revision = 'bbaaea2a3082'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -38,6 +41,38 @@ def upgrade():
     sa.ForeignKeyConstraint(['role'], ['role.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
+    )
+
+    role_table = table(
+        'role',
+        column('id', sa.UUID),
+        column('title', sa.String),
+        column('created_at', sa.DateTime),
+        column('modified_at', sa.DateTime),
+    )
+
+    op.bulk_insert(
+        role_table,
+        [
+            {
+                'id': uuid4(),
+                'title': 'admin',
+                'created_at': datetime.utcnow(),
+                'modified_at': datetime.utcnow(),
+            },
+            {
+                'id': uuid4(),
+                'title': 'customer',
+                'created_at': datetime.utcnow(),
+                'modified_at': datetime.utcnow(),
+            },
+            {
+                'id': uuid4(),
+                'title': 'vendor',
+                'created_at': datetime.utcnow(),
+                'modified_at': datetime.utcnow(),
+            },
+        ]
     )
     # ### end Alembic commands ###
 
