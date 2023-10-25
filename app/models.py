@@ -1,4 +1,5 @@
 from app.extensions import db
+from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import func
 from datetime import datetime
@@ -14,7 +15,7 @@ class UUIDMixin:
 class TimestampMixin:
     """Inherit to add created_at and modified_at columns to a model."""
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    modified_at = db.Column(db.DateTime, nullable=False, onupdate=func.timezone('UTC', func.current_timestamp()))
+    modified_at = db.Column(db.DateTime, nullable=False, onupdate=func.timezone('UTC', func.current_timestamp()), default=datetime.utcnow)
 
 
 class Role(UUIDMixin, TimestampMixin, db.Model):
@@ -23,11 +24,11 @@ class Role(UUIDMixin, TimestampMixin, db.Model):
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
     users = db.relationship('User', backref='user', lazy=True, cascade='all, delete-orphan')
 
-    def __repr__(self):
-        return f'<Role {self.title}>'
+    # def __repr__(self):
+    #     return f'<Role {self.title}>'
 
 
-class User(UUIDMixin, TimestampMixin, db.Model):
+class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
     __tablename__ = 'user'
 
     first_name = db.Column(db.String(config.DEFAULT_STRING_VALUE))
