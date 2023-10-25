@@ -1,7 +1,7 @@
 """Flask application."""
 from flask import Flask
 from config import Config, DevConfig
-from app.extensions import db, migrate
+from app.extensions import db, migrate, login_manager
 
 
 def create_app(config_class: Config = DevConfig):
@@ -12,6 +12,7 @@ def create_app(config_class: Config = DevConfig):
     # Initialize Flask extensions
     db.init_app(app)
     migrate.init_app(app, db)
+    login_manager.init_app(app)
 
     # Register blueprints
     from app.main import bp as main_bp
