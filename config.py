@@ -13,6 +13,12 @@ class Config(object):
     STATIC_FOLDER = 'static'
     TEMPLATES_FOLDER = 'templates'
     SQLALCHEMY_DATABASE_URI = getenv('SQLALCHEMY_DATABASE_URI')
+    MAIL_SERVER = 'smtp.googlemail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = getenv('MAIL_USERNAME')
+    MAIL_DEFAULT_SENDER = getenv('MAIL_DEFAULT_SENDER')
+    MAIL_PASSWORD = getenv('MAIL_PASSWORD')
 
 
 class DevConfig(Config):
