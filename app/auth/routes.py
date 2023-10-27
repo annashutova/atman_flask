@@ -47,7 +47,7 @@ def register():
             flash('Произошла ошибка при сохранении данных.', 'danger')
             return render_template('auth/register.html', form=form)
 
-        flash('Вы успешно зарегестрировались!', 'success')
+        flash('Вы успешно зарегистрировались!', 'success')
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
 
@@ -62,7 +62,6 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password, form.password.data):
             login_user(user)
-            flash('Вы успешно авторизовались!', 'success')
             next = request.args.get('next')
             return redirect(next or url_for('main.index'))
         flash('Неверный логин или пароль!', 'danger')
