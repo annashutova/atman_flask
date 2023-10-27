@@ -1,0 +1,47 @@
+.red-divider {
+    border-top: 2px solid red;
+}
+
+.red-underline-link {
+    text-decoration: none; /* Remove default underline */
+    color: #007bff; /* Set the link color */
+    transition: border-bottom 0.2s ease-in-out; /* Add a smooth transition effect for the underline */
+}
+
+.red-underline-link:hover {
+    border-bottom: 2px solid red; /* Red underline on hover */
+}
+
+.btn-up {
+    position: fixed;
+    background-color: rgb(214, 10, 10);
+    right: 20px;
+    bottom: 0;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 50px;
+    }
+
+.btn-up::before {
+content: "";
+width: 40px;
+height: 40px;
+background: transparent no-repeat center center;
+background-size: 100% 100%;
+background-image: url("../icons/arrow.svg");
+}
+
+.btn-up_hide {
+display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+.btn-up:hover {
+    background-color: rgb(255, 0, 0);
+}
+}
