@@ -2,6 +2,8 @@ from app.extensions import db
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import func
+from sqlalchemy.ext import associationproxy, hybrid
+from sqlalchemy.orm import validates
 from datetime import datetime
 import uuid
 import config
@@ -22,7 +24,7 @@ class Role(UUIDMixin, TimestampMixin, db.Model):
     __tablename__ = 'role'
 
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
-    users = db.relationship('User', backref='user', lazy=True, cascade='all, delete-orphan')
+    users = db.relationship('User', backref='role', lazy=True, cascade='all, delete-orphan')
 
     # def __repr__(self):
     #     return f'<Role {self.title}>'
@@ -35,7 +37,182 @@ class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
     last_name = db.Column(db.String(config.DEFAULT_STRING_VALUE))
     email = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
     password = db.Column(db.String(config.PASSWORD_LENGTH), nullable=False)
-    role = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), nullable=False)
+    role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), nullable=False)
+
+    # orders = db.relationship('OrderDetail', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.email}>'
+
+
+class AttributeCategory(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'attribute_category'
+
+    category = db.relationship('Category', back_populates='attribute_association', primaryjoin='AttributeCategory.category_id == Category.id')
+    attribute = db.relationship('Attribute', back_populates='category_association', primaryjoin='AttributeCategory.attribute_id == Attribute.id')
+
+    category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'), nullable=False)
+    attribute_id = db.Column(UUID(as_uuid=True), db.ForeignKey('attribute.id'), nullable=False)
+
+
+class Category(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'category'
+
+    master_category = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'), nullable=True)
+    title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
+    desc = db.Column(db.Text, nullable=True)
+    products = db.relationship('Product', backref='category', lazy=True, cascade='save-update')
+
+    # Many-to-many with Attribute
+    attribute_association = db.relationship('AttributeCategory', back_populates='category')
+    attributes = associationproxy.association_proxy('attribute_association', 'attribute')
+
+    def __repr__(self):
+        return f'<Category {self.title}>'
+
+
+class AttributeProduct(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'attribute_product'
+
+    str_value = db.Column(db.String, nullable=True)
+
+    attribute = db.relationship('Attribute', back_populates='product_association', primaryjoin='AttributeProduct.attribute_id == Attribute.id')
+    product = db.relationship('Product', back_populates='attribute_association', primaryjoin='AttributeProduct.product_id == Product.id')
+
+    product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
+    attribute_id = db.Column(UUID(as_uuid=True), db.ForeignKey('attribute.id'), nullable=False)
+
+    @hybrid.hybrid_property
+    def value(self):
+        match self.attribute.data_type:
+            case 'int':
+                return int(self.str_value) if self.str_value else None
+            case 'str':
+                return self.str_value if self.str_value else None
+            case 'float':
+                return float(self.str_value) if self.str_value else None
+            # TODO добавить булевое значение
+
+VALUE_TYPES = ('int', 'str', 'bool', 'float')
+
+class Attribute(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'attribute'
+
+    title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
+    data_type = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False)
+
+    # Many-to-many with Category
+    category_association = db.relationship('AttributeCategory', back_populates='attribute')
+    categories = associationproxy.association_proxy('category_association', 'category')
+
+    # Many-to-many with Product
+    product_association = db.relationship('AttributeProduct', back_populates='attribute')
+    products = associationproxy.association_proxy('product_association', 'product')
+
+    def __repr__(self):
+        return f'<Attribute {self.title}>'
+
+
+class Discount(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'discount'
+
+    title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
+    desc = db.Column(db.Text, nullable=True)
+    percent = db.Column(db.Integer, nullable=False)
+    products = db.relationship('Product', backref='discount', lazy=True, cascade='save-update')
+
+    @validates('percent')
+    def validate_percent(self, key, value):
+        if value < 0:
+            raise ValueError('Percent cannot be less than 0.')
+
+    def __repr__(self):
+        return f'<Discount {self.title}>'
+
+
+class Brand(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'brand'
+
+    name = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
+    desc = db.Column(db.Text, nullable=True)
+    image = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
+    products = db.relationship('Product', backref='brand', lazy=True, cascade='save-update')
+
+    def __repr__(self):
+        return f'<Brand {self.name}>'
+
+
+# class OrderItem(UUIDMixin, TimestampMixin, db.Model):
+#     __tablename__ = 'order_detail'
+
+#     quantity = db.Column(db.Integer, nullable=False)
+
+#     order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('order_detail.id'), nullable=False)
+#     product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
+
+#     order = db.relationship('OrderDetail', back_populates='product_association', primaryjoin='OrderItem.order_id == OrderDetail.id')
+#     product = db.relationship('Product', back_populates='order_association', primaryjoin='OrderItem.product_id == Product.id')
+
+#     @validates('quantity')
+#     def validate_quantity(self, key, value):
+#         if value < 0:
+#             raise ValueError('Quantity cannot be less than 0.')
+
+
+class Product(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'product'
+
+    title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
+    desc = db.Column(db.Text, nullable=True)
+    price = db.Column(db.Numeric, nullable=False)
+    stock = db.Column(db.Integer, nullable=False) # Available quantity of product in stock
+
+    discount_id = db.Column(UUID(as_uuid=True), db.ForeignKey('discount.id', ondelete='SET NULL'), nullable=True)
+    category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
+    brand_id = db.Column(UUID(as_uuid=True), db.ForeignKey('brand.id', ondelete='SET NULL'), nullable=True)
+    product_images = db.relationship('ProductImage', backref='product', lazy=True, cascade='all, delete-orphan')
+
+    # Many-to-many with OrderDetail
+    # order_association = db.relationship('OrderItem', back_populates='product')
+    # orders = associationproxy.association_proxy('order_association', 'order')
+
+    # Many-to-many with Attribute
+    attribute_association = db.relationship('AttributeProduct', back_populates='product')
+    attributes = associationproxy.association_proxy('attribute_association', 'attribute')
+
+    def __repr__(self):
+        return f'<Product {self.title}>'
+
+    @validates('price')
+    def validate_price(self, key, value):
+        if value < 0:
+            raise ValueError('Price cannot be less than 0.')
+
+    @validates('stock')
+    def validate_stock(self, key, value):
+        if value < 0:
+            raise ValueError('Stock cannot be less than 0.')
+
+
+class ProductImage(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'product_image'
+
+    image = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
+    product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
+
+
+# class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
+#     __tablename__ = 'order_detail'
+#     __table_args__ = {'extend_existing': True}
+
+#     total = db.Column(db.Numeric, nullable=False)
+#     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.id'), nullable=False)
+
+#     # Many-to-many with Product
+#     product_association = db.relationship('OrderItem', back_populates='order')
+#     products = associationproxy.association_proxy('product_association', 'product')
+
+#     @validates('total')
+#     def validate_total(self, key, value):
+#         if value < 0:
+#             raise ValueError('Total cannot be less than 0.')
