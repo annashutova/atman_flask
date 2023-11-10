@@ -60,7 +60,6 @@ class Category(UUIDMixin, TimestampMixin, db.Model):
 
     master_category = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'), nullable=True)
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
-    desc = db.Column(db.Text, nullable=True)
     products = db.relationship('Product', backref='category', lazy=True, cascade='save-update')
 
     # Many-to-many with Attribute
