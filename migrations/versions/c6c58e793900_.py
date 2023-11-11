@@ -41,6 +41,7 @@ def upgrade():
     op.create_table('category',
     sa.Column('master_category', sa.UUID(), nullable=True),
     sa.Column('title', sa.String(length=100), nullable=False),
+    sa.Column('image', sa.String(length=100), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('modified_at', sa.DateTime(), nullable=False),
