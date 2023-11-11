@@ -36,7 +36,7 @@ def register():
             last_name=form.last_name.data,
             email=form.email.data,
             password=password,
-            role=customer_role.id,
+            role_id=customer_role.id,
         )
 
         try:
