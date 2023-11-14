@@ -1,13 +1,15 @@
 """Routes of main blueprint."""
 from loguru import logger
 from app.main import bp
-from flask import request, redirect, url_for, make_response, render_template, current_app
+from flask import request, redirect, url_for, render_template, current_app, session
 from app.extensions import mail
 from flask_mail import Message
 
 
 @bp.route('/')
 def index():
+    session.clear() # TODO: нужно только для проверки корзины, потом удалить!!!
+    session['cart'] = {'products': {}, 'total': 0}
     return render_template('index.html')
 
 @bp.route('/contact', methods=['GET', 'POST'])
