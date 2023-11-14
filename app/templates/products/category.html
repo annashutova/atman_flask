@@ -41,7 +41,27 @@
                             {% endif %}
                             <div class="card-body">
                                 <h6 class="card-title">{{ product.title }}</h6>
-                                <h5 class="card-text text-danger">{{ product.price }}  ₽</h5>
+                                <div class="row d-flex">
+                                    <div class="col-md-3 mb-3 align-self-center">
+                                        <h5 class="card-text">{{ product.price }}  ₽</h5>
+                                    </div>
+                                    <div class="col-md-9 mb-3 align-self-center">
+                                        <form class="addToCartForm" action="{{ url_for('products.add_to_cart', product_id=product.id) }}" method="post">
+                                            <div class="row d-flex">
+                                                <div class="col-md-7 mb-3">
+                                                    <div class="input-group">
+                                                        <button class="btn btn-outline-danger decreaseBtn" type="button">-</button>
+                                                        <input type="number" name="quantity" button-id="{{ loop.index0 }}" class="form-control text-center quantityInput" value="1" min="1">
+                                                        <button class="btn btn-outline-danger increaseBtn" type="button">+</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-5 mb-3">
+                                                    <button class="btn btn-danger" type="button" button-id="{{ loop.index0 }}" redirect-url="{{ url_for('products.cart') }}">Купить</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -50,4 +70,7 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript" src="{{url_for('static', filename='javascript/product_quantity.js')}}"></script>
 {% endblock %}
