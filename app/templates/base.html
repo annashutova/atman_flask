@@ -143,5 +143,7 @@
         year.innerHTML = date.getFullYear()
     </script>
     <script type="text/javascript" src="{{url_for('static', filename='javascript/ontop.js')}}"></script>
+    {% block script %}
+    {% endblock script %}
 </body>
 </html>
