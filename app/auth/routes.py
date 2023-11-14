@@ -1,7 +1,7 @@
 """Routes of authentication blueprint."""
 from loguru import logger
 from flask import request, render_template, flash, redirect, url_for, session
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from app.auth import bp
 from app.extensions import db, login_manager
 from app.auth.forms import RegisterForm, LoginForm
@@ -69,6 +69,7 @@ def login():
     return render_template('auth/login.html', form=form)
 
 @bp.route('/logout')
+@login_required
 def logout():
     session.pop('_flashes', None)
     logout_user()
