@@ -51,12 +51,12 @@
                                                 <div class="col-md-7 mb-3">
                                                     <div class="input-group">
                                                         <button class="btn btn-outline-danger decreaseBtn" type="button">-</button>
-                                                        <input type="number" name="quantity" button-id="{{ loop.index0 }}" class="form-control text-center quantityInput" value="1" min="1">
+                                                        <input type="number" name="quantity" button-id="{{ loop.index0 }}" product-id="{{ product.id.hex }}" class="form-control text-center quantityInput" value="1" min="1">
                                                         <button class="btn btn-outline-danger increaseBtn" type="button">+</button>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-5 mb-3">
-                                                    <button class="btn btn-danger" type="button" button-id="{{ loop.index0 }}" redirect-url="{{ url_for('products.cart') }}">Купить</button>
+                                                    <button class="btn btn-danger" type="button" button-id="{{ loop.index0 }}" product-id="{{ product.id.hex }}" redirect-url="{{ url_for('products.cart') }}">Купить</button>
                                                 </div>
                                             </div>
                                         </form>
