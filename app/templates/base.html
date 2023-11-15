@@ -47,7 +47,7 @@
                 {% if current_user.is_authenticated %}
                 <div class="row">
                     <div class="col-md-3">
-                        <a class="btn btn-icon btn-light rounded-circle" href="#"><img src="{{ url_for('static', filename='icons/shopping_cart.svg')}}"/></a>
+                        <a class="btn btn-icon btn-light rounded-circle" href="{{ url_for('products.cart') }}"><img src="{{ url_for('static', filename='icons/shopping_cart.svg')}}"/></a>
                     </div>
                     <div class="col-md-3">
                         <a class="btn btn-icon btn-light rounded-circle" href="#">
