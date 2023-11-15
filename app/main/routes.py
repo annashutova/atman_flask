@@ -8,7 +8,7 @@ from flask_mail import Message
 
 @bp.route('/')
 def index():
-    session.clear() # TODO: нужно только для проверки корзины, потом удалить!!!
+    # session.clear() # TODO: нужно только для проверки корзины, потом удалить!!!
     session['cart'] = {'products': {}, 'total': 0}
     return render_template('index.html')
 
