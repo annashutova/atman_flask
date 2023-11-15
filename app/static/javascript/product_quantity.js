@@ -15,15 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const saveQuantity = (buttonId, quantity) => {
+    const saveQuantity = (productId, quantity) => {
         const actionData = {
           quantity: quantity,
         }
-        localStorage.setItem(buttonId, JSON.stringify(actionData))
+        localStorage.setItem(productId, JSON.stringify(actionData))
     }
 
-    const setQuantityFromLocalStorage = (index) => {
-        const storedData = localStorage.getItem('' + index)
+    const setQuantityFromLocalStorage = (productId, index) => {
+        const storedData = localStorage.getItem(productId)
         if (storedData) {
             const parsedData = JSON.parse(storedData)
             quantityInputs[index].value = parsedData.quantity
@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     quantityInputs.forEach((input, index) => {
-        setQuantityFromLocalStorage(index)
+        const productId = input.getAttribute('product-id')
+        setQuantityFromLocalStorage(productId, index)
     })
 
     document.addEventListener('click', function (event) {
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = buyButton.closest('.addToCartForm')
 
             const formData = new FormData(form)
-            const buttonId = buyButton.getAttribute('button-id')
+            const productId = buyButton.getAttribute('product-id')
 
             fetch(form.action, {
                 method: 'POST',
@@ -51,9 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                let quantity = formData.get('quantity')
-                saveQuantity(buttonId, quantity)
-                changeButtonState(buyButton, true)
+                if (data.status === 'success') {
+                    let quantity = formData.get('quantity')
+                    saveQuantity(productId, quantity)
+                    changeButtonState(buyButton, true)
+                }
             })
             .catch(error => {
                 console.error('Error:', error)
