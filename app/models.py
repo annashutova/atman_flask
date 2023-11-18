@@ -26,8 +26,8 @@ class Role(UUIDMixin, TimestampMixin, db.Model):
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
     users = db.relationship('User', backref='role', lazy=True, cascade='all, delete-orphan')
 
-    # def __repr__(self):
-    #     return f'<Role {self.title}>'
+    def __repr__(self):
+        return f'<Role {self.title}>'
 
 
 class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
@@ -39,7 +39,7 @@ class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
     password = db.Column(db.String(config.PASSWORD_LENGTH), nullable=False)
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), nullable=False)
 
-    # orders = db.relationship('OrderDetail', backref='user', lazy=True, cascade='all, delete-orphan')
+    orders = db.relationship('OrderDetail', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.email}>'
@@ -142,21 +142,21 @@ class Brand(UUIDMixin, TimestampMixin, db.Model):
         return f'<Brand {self.name}>'
 
 
-# class OrderItem(UUIDMixin, TimestampMixin, db.Model):
-#     __tablename__ = 'order_detail'
+class OrderItem(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'order_item'
 
-#     quantity = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
 
-#     order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('order_detail.id'), nullable=False)
-#     product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
+    order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('order_detail.id'), nullable=False)
+    product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
 
-#     order = db.relationship('OrderDetail', back_populates='product_association', primaryjoin='OrderItem.order_id == OrderDetail.id')
-#     product = db.relationship('Product', back_populates='order_association', primaryjoin='OrderItem.product_id == Product.id')
+    order = db.relationship('OrderDetail', back_populates='product_association', primaryjoin='OrderItem.order_id == OrderDetail.id')
+    product = db.relationship('Product', back_populates='order_association', primaryjoin='OrderItem.product_id == Product.id')
 
-#     @validates('quantity')
-#     def validate_quantity(self, key, value):
-#         if value < 0:
-#             raise ValueError('Quantity cannot be less than 0.')
+    @validates('quantity')
+    def validate_quantity(self, key, value):
+        if value < 0:
+            raise ValueError('Quantity cannot be less than 0.')
 
 
 class Product(UUIDMixin, TimestampMixin, db.Model):
@@ -173,8 +173,8 @@ class Product(UUIDMixin, TimestampMixin, db.Model):
     product_images = db.relationship('ProductImage', backref='product', lazy=True, cascade='all, delete-orphan')
 
     # Many-to-many with OrderDetail
-    # order_association = db.relationship('OrderItem', back_populates='product')
-    # orders = associationproxy.association_proxy('order_association', 'order')
+    order_association = db.relationship('OrderItem', back_populates='product')
+    orders = associationproxy.association_proxy('order_association', 'order')
 
     # Many-to-many with Attribute
     attribute_association = db.relationship('AttributeProduct', back_populates='product')
@@ -201,18 +201,17 @@ class ProductImage(UUIDMixin, TimestampMixin, db.Model):
     product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
 
 
-# class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
-#     __tablename__ = 'order_detail'
-#     __table_args__ = {'extend_existing': True}
+class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
+    __tablename__ = 'order_detail'
 
-#     total = db.Column(db.Numeric, nullable=False)
-#     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.id'), nullable=False)
+    total = db.Column(db.Numeric, nullable=False)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.id'), nullable=False)
 
-#     # Many-to-many with Product
-#     product_association = db.relationship('OrderItem', back_populates='order')
-#     products = associationproxy.association_proxy('product_association', 'product')
+    # Many-to-many with Product
+    product_association = db.relationship('OrderItem', back_populates='order')
+    products = associationproxy.association_proxy('product_association', 'product')
 
-#     @validates('total')
-#     def validate_total(self, key, value):
-#         if value < 0:
-#             raise ValueError('Total cannot be less than 0.')
+    @validates('total')
+    def validate_total(self, key, value):
+        if value < 0:
+            raise ValueError('Total cannot be less than 0.')
