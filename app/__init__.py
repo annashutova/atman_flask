@@ -25,4 +25,7 @@ def create_app(config_class: Config = DevConfig):
     from app.products import bp as products_bp
     app.register_blueprint(products_bp, url_prefix='/products')
 
+    from app.cart import bp as cart_bp
+    app.register_blueprint(cart_bp, url_prefix='/cart')
+
     return app
