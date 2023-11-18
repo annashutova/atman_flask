@@ -2,36 +2,123 @@ document.addEventListener('DOMContentLoaded', function() {
     const decreaseBtns = document.querySelectorAll('.decreaseBtn')
     const increaseBtns = document.querySelectorAll('.increaseBtn')
     const quantityInputs = document.querySelectorAll('.quantityInput')
+    const removeBtns = document.querySelectorAll('.removeBtn')
 
-    const saveQuantity = (productId, quantity) => {
+    const saveProdState = (productId, quantity, btnDisabled) => {
         const actionData = {
           quantity: quantity,
+          btnDisabled: btnDisabled
         }
         localStorage.setItem(productId, JSON.stringify(actionData))
     }
 
+    const setDataFromLocalStorage = (productId, index) => {
+        const storedData = localStorage.getItem(productId)
+        if (storedData) {
+            const parsedData = JSON.parse(storedData)
+            increaseBtns[index].disabled = parsedData.btnDisabled
+        }
+    }
+
+    const recountMinOrderAmount = () => {
+        let totalSum = document.getElementById('total-sum')
+        let minSum = parseFloat(totalSum.getAttribute('min-order-amount'))
+        let formOrder = document.getElementById('formOrder')
+        let errorText = document.getElementById('errorTextFormOrder')
+
+        if (minSum > parseFloat(totalSum.textContent)) {
+            formOrder.classList.add('hidden')
+            errorText.classList.remove('hidden')
+        } else if (minSum < parseFloat(totalSum.textContent)) {
+            formOrder.classList.remove('hidden')
+            errorText.classList.add('hidden')
+        }
+    }
+
+    recountMinOrderAmount()
+
     decreaseBtns.forEach((decreaseBtn, index) => {
         decreaseBtn.addEventListener('click', function() {
             let input = quantityInputs[index]
-            let quantity = parseInt(input.value)
             const productId = input.getAttribute('product-id')
+            let increaseBtn = increaseBtns[index]
+            let qtyPrice = document.querySelector(`td[product-id="${productId}"]`)
+            let totalSum = document.getElementById('total-sum')
+
+            const form = decreaseBtn.closest('.addToCartForm')
+            const formData = new FormData(form)
+
+            let quantity = formData.get('quantity')
             if (quantity > 1) {
                 quantity--
-                saveQuantity(productId, quantity)
-                let form = decreaseBtn.parentElement
-                if (form) form.submit()
+                formData.set('quantity', quantity)
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        input.value = quantity
+                        increaseBtn.disabled = false
+                        saveProdState(productId, quantity, false)
+                        qtyPrice.textContent = data.qty_price
+                        totalSum.textContent = data.total
+                        recountMinOrderAmount()
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error)
+                })
             }
         })
     })
 
     increaseBtns.forEach((increaseBtn, index) => {
+        let input = quantityInputs[index]
+        const productId = input.getAttribute('product-id')
+        setDataFromLocalStorage(productId, index)
         increaseBtn.addEventListener('click', function() {
-            let input = quantityInputs[index]
-            let quantity = parseInt(input.value)
-            const productId = input.getAttribute('product-id')
+            const stock = parseInt(input.getAttribute('max'))
+
+            let qtyPrice = document.querySelector(`td[product-id="${productId}"]`)
+            let totalSum = document.getElementById('total-sum')
+
+            let form = increaseBtn.closest('.addToCartForm')
+            const formData = new FormData(form)
+
+            let quantity = formData.get('quantity')
             quantity++
-            saveQuantity(productId, quantity)
-            let form = increaseBtn.parentElement
+            formData.set('quantity', quantity)
+            if (quantity === stock) {
+                increaseBtn.disabled = true
+            }
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    saveProdState(productId, quantity, increaseBtn.disabled)
+                    input.value = quantity
+                    qtyPrice.textContent = data.qty_price
+                    totalSum.textContent = data.total
+                    recountMinOrderAmount()
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error)
+            })
+        })
+    })
+
+    removeBtns.forEach((removeBtn, index) => {
+        let input = quantityInputs[index]
+        const productId = input.getAttribute('product-id')
+        removeBtn.addEventListener('click', function() {
+            localStorage.removeItem(productId)
+            let form = removeBtn.parentElement
             if (form) form.submit()
         })
     })
@@ -39,13 +126,45 @@ document.addEventListener('DOMContentLoaded', function() {
     quantityInputs.forEach((input) => {
         input.addEventListener('input', function() {
             let quantity = parseInt(input.value)
+            const stock = parseInt(input.getAttribute('max'))
             const productId = input.getAttribute('product-id')
+            let qtyPrice = document.querySelector(`td[product-id="${productId}"]`)
+            let totalSum = document.getElementById('total-sum')
+
+            const buttonId = input.getAttribute('button-id')
+            let increaseBtn = increaseBtns[parseInt(buttonId)]
+
+            const form = input.closest('.addToCartForm')
+            const formData = new FormData(form)
+
             if (isNaN(quantity) || quantity < 1) {
                 quantity = 1
+                input.value = quantity
+                increaseBtn.disabled = false
+                formData.set('quantity', quantity)
+            } else if (quantity > stock) {
+                quantity = stock
+                input.value = quantity
+                increaseBtn.disabled = true
+                formData.set('quantity', quantity)
             }
-            saveQuantity(productId, quantity)
-            let form = input.parentElement
-            if (form) form.submit()
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    saveProdState(productId, quantity, increaseBtn.disabled)
+                    qtyPrice.textContent = data.qty_price
+                    totalSum.textContent = data.total
+                    recountMinOrderAmount()
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error)
+            })
         })
     })
 })
