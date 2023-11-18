@@ -9,7 +9,8 @@ from flask_mail import Message
 @bp.route('/')
 def index():
     # session.clear() # TODO: нужно только для проверки корзины, потом удалить!!!
-    session['cart'] = {'products': {}, 'total': 0}
+    if 'cart' not in session:
+        session['cart'] = {'products': {}, 'total': 0}
     return render_template('index.html')
 
 @bp.route('/contact', methods=['GET', 'POST'])
@@ -17,8 +18,8 @@ def contact():
     if request.method == 'POST':
         email = request.form.get('email')
         phone = request.form.get('phone')
-        site_email = current_app.config.get('MAIL_USERNAME')
-        msg = Message('Обратная связь', recipients=[site_email])
+        recipient = current_app.config.get('MAIL_USERNAME')
+        msg = Message('Обратная связь', recipients=[recipient])
         msg.body = f'Вы получили сообщение от пользователя: email: {email}, телефон: {phone}'
         mail.send(msg)
     return redirect(url_for('main.index'))
