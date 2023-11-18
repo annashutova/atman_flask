@@ -15,18 +15,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const saveQuantity = (productId, quantity) => {
+    const saveProdState = (productId, quantity, btnDisabled) => {
         const actionData = {
           quantity: quantity,
+          btnDisabled: btnDisabled
         }
         localStorage.setItem(productId, JSON.stringify(actionData))
     }
 
-    const setQuantityFromLocalStorage = (productId, index) => {
+    const setDataFromLocalStorage = (productId, index) => {
         const storedData = localStorage.getItem(productId)
         if (storedData) {
             const parsedData = JSON.parse(storedData)
             quantityInputs[index].value = parsedData.quantity
+            increaseBtns[index].disabled = parsedData.btnDisabled
 
             const buyButton = document.querySelector(`button[button-id="${index}"]`)
             changeButtonState(buyButton, true)
@@ -35,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     quantityInputs.forEach((input, index) => {
         const productId = input.getAttribute('product-id')
-        setQuantityFromLocalStorage(productId, index)
+        setDataFromLocalStorage(productId, index)
     })
 
     document.addEventListener('click', function (event) {
@@ -45,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(form)
             const productId = buyButton.getAttribute('product-id')
+            const buttonId = buyButton.getAttribute('button-id')
+            let btnDisabled = increaseBtns[parseInt(buttonId)].disabled
 
             fetch(form.action, {
                 method: 'POST',
@@ -54,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.status === 'success') {
                     let quantity = formData.get('quantity')
-                    saveQuantity(productId, quantity)
+                    saveProdState(productId, quantity, btnDisabled)
                     changeButtonState(buyButton, true)
                 }
             })
@@ -68,32 +72,45 @@ document.addEventListener('DOMContentLoaded', function() {
         decreaseBtn.addEventListener('click', function() {
             let quantity = parseInt(quantityInputs[index].value)
             let buyButton = document.querySelector(`button[button-id="${index}"]`)
+            let increaseBtn = increaseBtns[index]
             changeButtonState(buyButton, false)
             if (quantity > 1) {
                 quantity--
                 quantityInputs[index].value = quantity
+                increaseBtn.disabled = false
             }
         })
     })
 
     increaseBtns.forEach((increaseBtn, index) => {
         increaseBtn.addEventListener('click', function() {
-            let quantity = parseInt(quantityInputs[index].value)
+            let input = quantityInputs[index]
+            const stock = parseInt(input.getAttribute('max'))
+            let quantity = parseInt(input.value)
             let buyButton = document.querySelector(`button[button-id="${index}"]`)
             changeButtonState(buyButton, false)
             quantity++
-            quantityInputs[index].value = quantity
+            input.value = quantity
+            if (quantity === stock) {
+                increaseBtn.disabled = true
+            }
         })
     })
 
     quantityInputs.forEach((input) => {
         input.addEventListener('input', function() {
             let quantity = parseInt(input.value)
+            const stock = parseInt(input.getAttribute('max'))
             const buttonId = input.getAttribute('button-id')
+            let increaseBtn = increaseBtns[parseInt(buttonId)]
             let buyButton = document.querySelector(`button[button-id="${buttonId}"]`)
             changeButtonState(buyButton, false)
             if (isNaN(quantity) || quantity < 1) {
                 input.value = 1
+                increaseBtn.disabled = false
+            } else if (quantity >= stock) {
+                input.value = stock
+                increaseBtn.disabled = true
             }
         })
     })
