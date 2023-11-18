@@ -12,7 +12,7 @@
 <body>
     <div class="container">
         <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-          <a href="/" class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
+          <a href="/" class="d-flex align-items-center col-md-2 mb-2 mb-md-0 text-dark text-decoration-none">
             <img src="{{ url_for('static', filename='icons/logo.png')}}"/>
           </a>
           <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
@@ -47,12 +47,19 @@
                 {% if current_user.is_authenticated %}
                 <div class="row">
                     <div class="col-md-3">
-                        <a class="btn btn-icon btn-light rounded-circle" href="{{ url_for('products.cart') }}"><img src="{{ url_for('static', filename='icons/shopping_cart.svg')}}"/></a>
+                        <a class="btn btn-icon btn-light rounded-circle" href="{{ url_for('cart.get_cart') }}"><img src="{{ url_for('static', filename='icons/shopping_cart.svg')}}"/></a>
                     </div>
                     <div class="col-md-3">
-                        <a class="btn btn-icon btn-light rounded-circle" href="#">
-                            <img src="{{ url_for('static', filename='icons/profile_icon.svg')}}"/>
-                        </a>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-icon btn-light rounded-circle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <img src="{{ url_for('static', filename='icons/profile_icon.svg')}}"/>
+                            </button>
+                            <div class="dropdown-menu">
+                                <!-- Dropdown elements go here -->
+                                <a class="dropdown-item" href="#">Заказы</a>
+                                <a class="dropdown-item" href="#">Item 2</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
