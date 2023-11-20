@@ -5,6 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.ext import associationproxy, hybrid
 from sqlalchemy.orm import validates
 from datetime import datetime
+import re
 import uuid
 import config
 
@@ -33,9 +34,9 @@ class Role(UUIDMixin, TimestampMixin, db.Model):
 class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
     __tablename__ = 'user'
 
-    first_name = db.Column(db.String(config.DEFAULT_STRING_VALUE))
-    last_name = db.Column(db.String(config.DEFAULT_STRING_VALUE))
+    name = db.Column(db.String(config.DEFAULT_STRING_VALUE))
     email = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
+    phone = db.Column(db.String(config.PHONE_LENGTH), nullable=True)
     password = db.Column(db.String(config.PASSWORD_LENGTH), nullable=False)
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), nullable=False)
 
@@ -43,6 +44,14 @@ class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
 
     def __repr__(self):
         return f'<User {self.email}>'
+
+    @validates('phone')
+    def validate_phone(self, key, value):
+        if value is not None:
+            phone_pattern = re.compile(r'^\+[0-9]{11}$')
+            if not phone_pattern.match(value):
+                raise ValueError('Invalid phone number format. Please use a valid format.')
+        return value
 
 
 class AttributeCategory(UUIDMixin, TimestampMixin, db.Model):
@@ -125,6 +134,7 @@ class Discount(UUIDMixin, TimestampMixin, db.Model):
     def validate_percent(self, key, value):
         if value < 0:
             raise ValueError('Percent cannot be less than 0.')
+        return value
 
     def __repr__(self):
         return f'<Discount {self.title}>'
@@ -157,6 +167,7 @@ class OrderItem(UUIDMixin, TimestampMixin, db.Model):
     def validate_quantity(self, key, value):
         if value < 0:
             raise ValueError('Quantity cannot be less than 0.')
+        return value
 
 
 class Product(UUIDMixin, TimestampMixin, db.Model):
@@ -187,11 +198,13 @@ class Product(UUIDMixin, TimestampMixin, db.Model):
     def validate_price(self, key, value):
         if value < 0:
             raise ValueError('Price cannot be less than 0.')
+        return value
 
     @validates('stock')
     def validate_stock(self, key, value):
         if value < 0:
             raise ValueError('Stock cannot be less than 0.')
+        return value
 
 
 class ProductImage(UUIDMixin, TimestampMixin, db.Model):
@@ -205,6 +218,9 @@ class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
     __tablename__ = 'order_detail'
 
     total = db.Column(db.Numeric, nullable=False)
+    phone = db.Column(db.String(config.PHONE_LENGTH))
+    address = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=True)
+    extra = db.Column(db.Text, nullable=True)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.id'), nullable=False)
 
     # Many-to-many with Product
@@ -215,3 +231,12 @@ class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
     def validate_total(self, key, value):
         if value < 0:
             raise ValueError('Total cannot be less than 0.')
+        return value
+
+    @validates('phone')
+    def validate_phone(self, key, value):
+        if value is not None:
+            phone_pattern = re.compile(r'^\+[0-9]{11}$')
+            if not phone_pattern.match(value):
+                raise ValueError('Invalid phone number format. Please use a valid format.')
+        return value
