@@ -32,8 +32,7 @@ def register():
             return render_template('auth/register.html', form=form)
 
         user = User(
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
+            name=form.name.data,
             email=form.email.data,
             password=password,
             role_id=customer_role.id,
