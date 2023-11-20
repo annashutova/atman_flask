@@ -27,20 +27,10 @@
                     <a href="{{url_for('auth.login')}}" class="link-danger link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Уже есть аккаунта?</a></p>
                 </div>
                 
-                <!-- 2 column grid layout with text inputs for the first and last names -->
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                    <div class="form-outline">
-                        <label class="form-label" for="form3Example3">{{ form.first_name.label }}</label>
-                        {{ form.first_name() }}
-                    </div>
-                    </div>
-                    <div class="col-md-6 mb-4">
-                    <div class="form-outline">
-                        <label class="form-label" for="form3Example3">{{ form.last_name.label }}</label>
-                        {{ form.last_name() }}
-                    </div>
-                    </div>
+                <!-- Name input -->
+                <div class="form-outline mb-4">
+                  <label class="form-label" for="form3Example3">{{ form.name.label }}</label>
+                  {{ form.name() }}
                 </div>
 
               <!-- Email input -->
