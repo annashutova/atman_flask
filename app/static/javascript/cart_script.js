@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const increaseBtns = document.querySelectorAll('.increaseBtn')
     const quantityInputs = document.querySelectorAll('.quantityInput')
     const removeBtns = document.querySelectorAll('.removeBtn')
+    const orderSubmitBtn = document.getElementById('orderSubmitBtn')
 
     const saveProdState = (productId, quantity, btnDisabled) => {
         const actionData = {
@@ -22,16 +23,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const recountMinOrderAmount = () => {
         let totalSum = document.getElementById('total-sum')
-        let minSum = parseFloat(totalSum.getAttribute('min-order-amount'))
-        let formOrder = document.getElementById('formOrder')
+        let minSum = totalSum ? parseFloat(totalSum.getAttribute('min-order-amount')) : null
         let errorText = document.getElementById('errorTextFormOrder')
+        let orderContainer = document.getElementById('orderContainer')
 
-        if (minSum > parseFloat(totalSum.textContent)) {
-            formOrder.classList.add('hidden')
-            errorText.classList.remove('hidden')
-        } else if (minSum < parseFloat(totalSum.textContent)) {
-            formOrder.classList.remove('hidden')
-            errorText.classList.add('hidden')
+        if (totalSum && minSum && errorText && orderContainer) {
+            if (minSum > parseFloat(totalSum.textContent)) {
+                orderContainer.classList.add('hidden')
+                errorText.classList.remove('hidden')
+            } else if (minSum < parseFloat(totalSum.textContent)) {
+                orderContainer.classList.remove('hidden')
+                errorText.classList.add('hidden')
+            }
         }
     }
 
@@ -167,4 +170,29 @@ document.addEventListener('DOMContentLoaded', function() {
             })
         })
     })
+
+    if (orderSubmitBtn) {
+        orderSubmitBtn.addEventListener('click', function(event) {
+            event.preventDefault()
+
+            const formOrder = document.getElementById('formOrder')
+            let formData = new FormData(formOrder)
+            console.log(formOrder)
+            console.log(formData)
+            fetch(formOrder.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    localStorage.clear()
+                }
+                window.location = data.redirect
+            })
+            .catch(error => {
+                console.error('Error submitting the form:', error)
+            })
+        })
+    }
 })
