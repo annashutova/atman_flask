@@ -1,12 +1,14 @@
-from wtforms import StringField, PasswordField, SubmitField, validators, ValidationError
+from wtforms import StringField, PasswordField, validators, ValidationError
 from flask_wtf import FlaskForm
 from app.models import User
 
 
 class RegisterForm(FlaskForm):
-    first_name = StringField('Имя: ', [validators.DataRequired(message='Это обязательное поле.')])
-    last_name = StringField('Фамилия: ', [validators.DataRequired(message='Это обязательное поле.')])
-    email = StringField('Почта: ', [validators.Email(message='Невалидная почта.'), validators.DataRequired(message='Это обязательное поле.')])
+    name = StringField('ФИО: ', [validators.DataRequired(message='Это обязательное поле.')])
+    email = StringField(
+        'Почта: ',
+        [validators.Email(message='Невалидная почта.'), validators.DataRequired(message='Это обязательное поле.')]
+    )
     password = PasswordField(
         'Пароль: ',
         [
@@ -22,5 +24,8 @@ class RegisterForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Почта: ', [validators.Email(message='Невалидная почта.'), validators.DataRequired(message='Это обязательное поле.')])
+    email = StringField(
+        'Почта: ',
+        [validators.Email(message='Невалидная почта.'), validators.DataRequired(message='Это обязательное поле.')]
+    )
     password = PasswordField('Пароль: ', [validators.DataRequired(message='Это обязательное поле.')])
