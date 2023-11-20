@@ -1,5 +1,5 @@
 from app.extensions import db
-from app.models import Category, Product
+from app.models import Category
 
 
 def add_mock_categories():
@@ -24,7 +24,7 @@ def add_mock_categories():
     for title, image in main_categories:
         category = Category(title=title, image=image, master_category=None)
         db.session.add(category)
-    
+
     paper = Category.query.filter_by(title = 'Бумага').first()
     for title, image in paper_categories:
         category = Category(title=title, image=image, master_category=paper.id)
