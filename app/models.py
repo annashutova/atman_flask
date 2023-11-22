@@ -25,10 +25,13 @@ class Role(UUIDMixin, TimestampMixin, db.Model):
     __tablename__ = 'role'
 
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
-    users = db.relationship('User', backref='role', lazy=True, cascade='all, delete-orphan')
+    users = db.relationship('User', back_populates='role', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Role {self.title}>'
+
+    def __str__(self):
+        return self.title
 
 
 class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
@@ -39,11 +42,15 @@ class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
     phone = db.Column(db.String(config.PHONE_LENGTH), nullable=True)
     password = db.Column(db.String(config.PASSWORD_LENGTH), nullable=False)
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), nullable=False)
+    role = db.relationship('Role', back_populates='users')
 
     orders = db.relationship('OrderDetail', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.email}>'
+
+    def __str__(self):
+        return f'{self.email}: {self.name}'
 
     @validates('phone')
     def validate_phone(self, key, value):
@@ -70,7 +77,7 @@ class Category(UUIDMixin, TimestampMixin, db.Model):
     master_category = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id'), nullable=True)
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
     image = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
-    products = db.relationship('Product', backref='category', lazy=True, cascade='save-update')
+    products = db.relationship('Product', back_populates='category', lazy=True, cascade='save-update')
 
     # Many-to-many with Attribute
     attribute_association = db.relationship('AttributeCategory', back_populates='category')
@@ -78,6 +85,9 @@ class Category(UUIDMixin, TimestampMixin, db.Model):
 
     def __repr__(self):
         return f'<Category {self.title}>'
+
+    def __str__(self):
+        return self.title
 
 
 class AttributeProduct(UUIDMixin, TimestampMixin, db.Model):
@@ -128,7 +138,7 @@ class Discount(UUIDMixin, TimestampMixin, db.Model):
     title = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=False, unique=True)
     desc = db.Column(db.Text, nullable=True)
     percent = db.Column(db.Integer, nullable=False)
-    products = db.relationship('Product', backref='discount', lazy=True, cascade='save-update')
+    products = db.relationship('Product', back_populates='discount', lazy=True, cascade='save-update')
 
     @validates('percent')
     def validate_percent(self, key, value):
@@ -138,6 +148,9 @@ class Discount(UUIDMixin, TimestampMixin, db.Model):
 
     def __repr__(self):
         return f'<Discount {self.title}>'
+    
+    def __str__(self):
+        return self.title
 
 
 class Brand(UUIDMixin, TimestampMixin, db.Model):
@@ -181,7 +194,10 @@ class Product(UUIDMixin, TimestampMixin, db.Model):
     discount_id = db.Column(UUID(as_uuid=True), db.ForeignKey('discount.id', ondelete='SET NULL'), nullable=True)
     category_id = db.Column(UUID(as_uuid=True), db.ForeignKey('category.id', ondelete='SET NULL'), nullable=True)
     brand_id = db.Column(UUID(as_uuid=True), db.ForeignKey('brand.id', ondelete='SET NULL'), nullable=True)
-    product_images = db.relationship('ProductImage', backref='product', lazy=True, cascade='all, delete-orphan')
+    product_images = db.relationship('ProductImage', back_populates='product', lazy=True, cascade='all, delete-orphan')
+
+    discount = db.relationship('Discount', back_populates='products')
+    category = db.relationship('Category', back_populates='products')
 
     # Many-to-many with OrderDetail
     order_association = db.relationship('OrderItem', back_populates='product')
@@ -193,6 +209,9 @@ class Product(UUIDMixin, TimestampMixin, db.Model):
 
     def __repr__(self):
         return f'<Product {self.title}>'
+
+    def __str__(self):
+        return self.title
 
     @validates('price')
     def validate_price(self, key, value):
@@ -212,6 +231,7 @@ class ProductImage(UUIDMixin, TimestampMixin, db.Model):
 
     image = db.Column(db.String(config.DEFAULT_STRING_VALUE), unique=True)
     product_id = db.Column(UUID(as_uuid=True), db.ForeignKey('product.id'), nullable=False)
+    product = db.relationship('Product', back_populates='product_images')
 
 
 class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
