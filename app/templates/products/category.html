@@ -40,7 +40,9 @@
                                 <img src="{{ url_for('static', filename='products/noimage.jpg')}}" class="card-img-top" alt="{{ product.title }}" style="height: 60%; object-fit: contain;">
                             {% endif %}
                             <div class="card-body">
-                                <h6 class="card-title">{{ product.title }}</h6>
+                                <a href="{{ url_for('products.get_product', product_id=product.id) }}" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
+                                    <h6 class="card-title">{{ product.title }}</h6>
+                                </a>
                                 <div class="row d-flex">
                                     <div class="col-md-3 mb-3 align-self-center">
                                         <h5 class="card-text">{{ product.price }}  ₽</h5>
@@ -72,5 +74,5 @@
 </div>
 {% endblock %}
 {% block script %}
-    <script type="text/javascript" src="{{url_for('static', filename='javascript/product_quantity.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='javascript/catalog.js')}}"></script>
 {% endblock %}
