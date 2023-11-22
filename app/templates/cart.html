@@ -27,7 +27,7 @@
                         <img src="{{ url_for('static', filename='products/' + data['image'])}}" alt="{{ data['title'] }}" style="max-height: 100px; object-fit: contain;">
                       </th>
                       <td>
-                        <a href="#" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
+                        <a href="{{ url_for('products.get_product', product_id=data['product_id']) }}" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
                           <p>{{ data['title'] }}</p>
                         </a>
                       </td>
