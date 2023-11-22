@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app.auth import bp
 from app.extensions import db, login_manager
 from app.auth.forms import RegisterForm, LoginForm
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 from app.models import User, Role
 import uuid
 
@@ -58,13 +58,16 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and check_password_hash(user.password, form.password.data):
-            login_user(user)
-            next = request.args.get('next')
-            return redirect(next or url_for('main.index'))
-        flash('Неверный логин или пароль!', 'danger')
-        return redirect(url_for('auth.login'))
+        try:
+            form.validate_user()
+        except Exception as ex:
+            flash(ex.message, 'danger')
+            return redirect(url_for('auth.login'))
+
+        user = form.get_user()
+        login_user(user)
+        next = request.args.get('next')
+        return redirect(next or url_for('main.index'))
     return render_template('auth/login.html', form=form)
 
 @bp.route('/logout')
