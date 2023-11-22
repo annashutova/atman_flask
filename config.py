@@ -12,13 +12,20 @@ class Config(object):
     SESSION_COOKIE_NAME = getenv('SESSION_COOKIE_NAME')
     STATIC_FOLDER = 'static'
     TEMPLATES_FOLDER = 'templates'
+
+    #SQLAlchemy
     SQLALCHEMY_DATABASE_URI = getenv('SQLALCHEMY_DATABASE_URI')
+
+    # SMTP Gmail
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = getenv('MAIL_USERNAME')
     MAIL_DEFAULT_SENDER = getenv('MAIL_DEFAULT_SENDER')
     MAIL_PASSWORD = getenv('MAIL_PASSWORD')
+
+    # Flask Admin
+    FLASK_ADMIN_SWATCH = 'lux'
 
 
 class DevConfig(Config):
@@ -39,3 +46,5 @@ class ProdConfig(Config):
 DEFAULT_STRING_VALUE = 100
 PASSWORD_LENGTH = 300
 PHONE_LENGTH = 12
+
+ADMIN_PAGE_PAGINATION = 20
