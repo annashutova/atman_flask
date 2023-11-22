@@ -80,17 +80,19 @@ document.addEventListener('DOMContentLoaded', function() {
     increaseBtns.forEach((increaseBtn, index) => {
         let input = quantityInputs[index]
         const productId = input.getAttribute('product-id')
+        let quantity = parseInt(input.value)
+        const stock = parseInt(input.getAttribute('max'))
+        if (quantity === stock) {
+            increaseBtn.disabled = true
+        }
         setDataFromLocalStorage(productId, index)
         increaseBtn.addEventListener('click', function() {
-            const stock = parseInt(input.getAttribute('max'))
-
             let qtyPrice = document.querySelector(`td[product-id="${productId}"]`)
             let totalSum = document.getElementById('total-sum')
 
             let form = increaseBtn.closest('.addToCartForm')
             const formData = new FormData(form)
 
-            let quantity = formData.get('quantity')
             quantity++
             formData.set('quantity', quantity)
             if (quantity === stock) {
