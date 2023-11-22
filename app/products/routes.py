@@ -1,6 +1,6 @@
 """Routes of products blueprint."""
 from loguru import logger
-from flask import render_template, url_for
+from flask import render_template, url_for, redirect
 from app.products import bp
 from app.models import Category, Product
 from uuid import UUID
@@ -28,3 +28,11 @@ def load_categories(category_id):
     categories = Category.query.filter_by(master_category = category_id).all()
     products = Product.query.filter(Product.category_id == category_id, Product.stock != 0).all()
     return render_template('products/category.html', categories=categories, products=products, breadcrumbs=breadcrumbs)
+
+@bp.route("/product/<uuid:product_id>")
+def get_product(product_id):
+    product = Product.query.get(product_id)
+    if not product:
+        return redirect(url_for('product.load_catalog'))
+    breadcrumbs = get_breadcrumbs(product.category_id)
+    return render_template('products/product.html', breadcrumbs=breadcrumbs, product=product)
