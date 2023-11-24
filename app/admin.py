@@ -8,7 +8,8 @@ from flask_admin.contrib import sqla
 from werkzeug.utils import secure_filename
 from flask_admin import expose, AdminIndexView
 from flask_admin.form.upload import FileUploadField
-from app.models import User, Role, Product, Category, ProductImage
+from flask_admin.model.form import InlineFormAdmin
+from app.models import User, Role, Product, Category, ProductImage, OrderDetail, OrderItem
 from app.extensions import db
 from config import ADMIN_PAGE_PAGINATION
 import os.path as os_path
@@ -23,6 +24,17 @@ def generate_filename(obj, file_data):
     random_str = str(uuid4())[:10]
 
     return secure_filename(f'{timestamp}_{random_str}{file_extension}')
+
+
+class MyInlineFormAdmin(InlineFormAdmin):
+    form_widget_args = {
+        'created_at': {
+            'disabled': True
+        },
+        'modified_at': {
+            'disabled': True
+        }
+    }
 
 
 class MyModelView(sqla.ModelView):
@@ -87,33 +99,32 @@ class UserView(MyModelView):
     form_columns = ('name', 'email', 'phone', 'password', 'created_at', 'modified_at', 'role')
 
 
+class ProductImageInlineModelForm(MyInlineFormAdmin):
+    form_label = 'Картинка'
+    form_extra_fields = {
+        'image': FileUploadField(
+            label='Картинка',
+            base_path=os_path.join(os_path.dirname(__file__), 'static', 'products'),
+            namegen=generate_filename,
+            allowed_extensions=['jpg', 'png', 'jpeg']
+        )
+    }
+
+    def __init__(self):
+        return super(ProductImageInlineModelForm, self).__init__(ProductImage)
+
+
 class ProductView(MyModelView):
     column_searchable_list = ('title',)
     column_filters = ('created_at', 'stock', 'price')
+    inline_models = (ProductImageInlineModelForm(),)
     form_columns = (
         'title',
         'desc',
         'price',
         'stock',
         'category',
-        'discount',
-        'product_images'
     )
-
-
-class ProductImageView(MyModelView):
-    column_searchable_list = ('image',)
-    column_filters = ('created_at',)
-    form_columns = ('image', 'product')
-
-    form_extra_fields = {
-        'image': FileUploadField(
-            label='Картинка',
-            base_path=os_path.join(os_path.dirname(__file__), 'static', 'products'),
-            namegen=generate_filename,
-            allowed_extensions=['jpg', 'png']
-        )
-    }
 
 
 class CategoryView(MyModelView):
@@ -131,9 +142,23 @@ class CategoryView(MyModelView):
     }
 
 
+class OrderItemInlineModelForm(MyInlineFormAdmin):
+    form_label = 'Товары'
+
+    def __init__(self):
+        return super(OrderItemInlineModelForm, self).__init__(OrderItem)
+
+
+class OrderDetailView(MyModelView):
+    column_searchable_list = ('phone', 'address', 'status')
+    column_filters = ('created_at', )
+    form_columns = ('user', 'total', 'phone', 'address', 'extra', 'status')
+    inline_models = (OrderItemInlineModelForm(), )
+
+
 admin = Admin(name='Atman', index_view=MyAdminIndexView(), template_mode='bootstrap4')
-admin.add_view(UserView(User, db.session, 'Пользователи'))
 admin.add_view(RoleView(Role, db.session, 'Роли'))
-admin.add_view(ProductView(Product, db.session, 'Товары', 'Товары'))
+admin.add_view(UserView(User, db.session, 'Пользователи'))
 admin.add_view(CategoryView(Category, db.session, 'Категории'))
-admin.add_view(ProductImageView(ProductImage, db.session, 'Картинки', 'Товары'))
+admin.add_view(ProductView(Product, db.session, 'Товары'))
+admin.add_view(OrderDetailView(OrderDetail, db.session, 'Заказы'))
