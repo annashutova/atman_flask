@@ -1,10 +1,16 @@
+"""SQLAlchemy models."""
+from loguru import logger
 from app.extensions import db
+from flask import current_app
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import func
+from sqlalchemy.event import listens_for
 from sqlalchemy.ext import associationproxy, hybrid
 from sqlalchemy.orm import validates
 from datetime import datetime
+import os
+import os.path as op
 import re
 import uuid
 import config
@@ -44,7 +50,7 @@ class User(UserMixin, UUIDMixin, TimestampMixin, db.Model):
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('role.id'), nullable=False)
     role = db.relationship('Role', back_populates='users')
 
-    orders = db.relationship('OrderDetail', backref='user', lazy=True, cascade='all, delete-orphan')
+    orders = db.relationship('OrderDetail', back_populates='user', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.email}>'
@@ -88,6 +94,15 @@ class Category(UUIDMixin, TimestampMixin, db.Model):
 
     def __str__(self):
         return self.title
+
+
+@listens_for(Category, 'after_delete')
+def del_file(mapper, connection, target):
+    if target.image:
+        try:
+            os.remove(op.join(current_app.static_folder, 'categories', target.image))
+        except OSError as ex:
+            logger.error(f'Error while deleting image file of Catalog: {ex}')
 
 
 class AttributeProduct(UUIDMixin, TimestampMixin, db.Model):
@@ -234,6 +249,15 @@ class ProductImage(UUIDMixin, TimestampMixin, db.Model):
     product = db.relationship('Product', back_populates='product_images')
 
 
+@listens_for(ProductImage, 'after_delete')
+def del_file(mapper, connection, target):
+    if target.image:
+        try:
+            os.remove(op.join(current_app.static_folder, 'products', target.image))
+        except OSError as ex:
+            logger.error(f'Error while deleting image file of ProductImage: {ex}')
+
+
 class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
     __tablename__ = 'order_detail'
 
@@ -241,7 +265,9 @@ class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
     phone = db.Column(db.String(config.PHONE_LENGTH))
     address = db.Column(db.String(config.DEFAULT_STRING_VALUE), nullable=True)
     extra = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(config.ORDER_STATUS_LENGTH), nullable=False, default=config.ORDER_STATUSES[0])
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', back_populates='orders')
 
     # Many-to-many with Product
     product_association = db.relationship('OrderItem', back_populates='order')
@@ -251,6 +277,12 @@ class OrderDetail(UUIDMixin, TimestampMixin, db.Model):
     def validate_total(self, key, value):
         if value < 0:
             raise ValueError('Total cannot be less than 0.')
+        return value
+
+    @validates('status')
+    def validate_status(self, key, value):
+        if value not in config.ORDER_STATUSES:
+            raise ValueError('Order status can only be "в процессе" or "получен".')
         return value
 
     @validates('phone')
