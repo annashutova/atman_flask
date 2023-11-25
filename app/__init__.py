@@ -30,4 +30,7 @@ def create_app(config_class: Config = DevConfig):
     from app.cart import bp as cart_bp
     app.register_blueprint(cart_bp, url_prefix='/cart')
 
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
     return app
