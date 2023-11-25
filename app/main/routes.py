@@ -1,9 +1,10 @@
 """Routes of main blueprint."""
 from loguru import logger
 from app.main import bp
-from flask import request, redirect, url_for, render_template, current_app, session
+from flask import request, redirect, url_for, render_template, current_app, session, jsonify
 from app.extensions import mail
 from flask_mail import Message
+from app.models import Product, Category
 
 
 @bp.route('/')
@@ -47,3 +48,31 @@ def payment_delivery():
 @bp.route('/help')
 def help():
     return render_template('information/help.html')
+
+@bp.route("/search")
+def search():
+    query = request.args.get('query', '')
+
+    product_results = Product.query.filter(Product.title.ilike(f'%{query}%')).all()
+    category_results = Category.query.filter(Category.title.ilike(f'%{query}%')).all()
+
+    results = []
+    if category_results:
+        results += [{'type': 'header', 'title': 'Категории'}]
+    results += [
+        {
+            'url': url_for('products.load_categories', category_id=category.id),
+            'title': category.title,
+            'type': 'category'
+        } for category in category_results
+    ]
+    if product_results:
+        results += [{'type': 'header', 'title': 'Товары'}]
+    results += [
+        {
+            'url': url_for('products.get_product', product_id=product.id),
+            'title': product.title,
+            'type': 'product'
+        } for product in product_results
+    ]
+    return jsonify(results)
