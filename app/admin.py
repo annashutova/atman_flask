@@ -3,6 +3,7 @@ from loguru import logger
 from flask import redirect, url_for, request, flash
 from flask_login import current_user, login_user, logout_user
 from flask_admin import Admin
+from wtforms import SelectField
 from app.auth.forms import LoginForm
 from flask_admin.contrib import sqla
 from werkzeug.utils import secure_filename
@@ -11,10 +12,11 @@ from flask_admin.form.upload import FileUploadField
 from flask_admin.model.form import InlineFormAdmin
 from app.models import User, Role, Product, Category, ProductImage, OrderDetail, OrderItem
 from app.extensions import db
-from config import ADMIN_PAGE_PAGINATION
+from config import ADMIN_PAGE_PAGINATION, ORDER_STATUSES
 import os.path as os_path
 from time import time
 from uuid import uuid4
+import re
 
 
 def generate_filename(obj, file_data):
@@ -154,6 +156,10 @@ class OrderDetailView(MyModelView):
     column_filters = ('created_at', )
     form_columns = ('user', 'total', 'phone', 'address', 'extra', 'status')
     inline_models = (OrderItemInlineModelForm(), )
+    
+    form_extra_fields = {
+        'status': SelectField('Status', choices=[('в процессе', 'В процессе'), ('получен', 'Получен')])
+    }
 
 
 admin = Admin(name='Atman', index_view=MyAdminIndexView(), template_mode='bootstrap4')
