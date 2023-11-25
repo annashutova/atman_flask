@@ -50,3 +50,8 @@ display: none;
 .hidden {
     display: none;
 }
+
+#card-dropdown {
+    position: absolute;
+    z-index: 1000;
+}
