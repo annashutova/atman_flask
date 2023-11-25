@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %} Заказы {% endblock %}
+
+{% block content %}
+<style>
+    a {
+        text-decoration: none;
+        color: black;
+    }
+
+    a:hover {
+        color: black;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            {% if not(actual_orders or past_orders) %}
+            <h4>У вас пока нет заказов.</h4>
+            {% else %}
+            <h4>Текущие заказы</h4>
+            {% for act_order in actual_orders %}
+            <a href="{{ url_for('products.get_order', order_id=act_order.id) }}">
+                <div class="card align-items-center shadow d-flex flex-column mb-3">
+                    <div class="card-body col-md-12">
+                        <h4 class="card-title">ID Заказа: {{ act_order.id }}</h4>
+                        <div class="row d-flex justify-content-end">
+                            <div class="col-md-3">
+                                <h6>Дата</h6>
+                                <p>{{ act_order.created_at.strftime('%d-%m-%Y') }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Сумма</h6>
+                                <p>{{ act_order.total }} руб.</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Статус заказа</h6>
+                                <p class="text-primary">{{ act_order.status }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+            <div class="red-divider mt-4 mb-4"></div>
+            <h4>Полученные заказы</h4>
+            {% for past_order in past_orders %}
+            <a href="{{ url_for('products.get_order', order_id=past_order.id) }}">
+                <div class="card align-items-center shadow d-flex flex-column">
+                    <div class="card-body col-md-12">
+                        <h4 class="card-title">ID Заказа: {{ past_order.id.hex }}</h4>
+                            <div class="row d-flex justify-content-end">
+                            <div class="col-md-3">
+                                <h6>Дата</h6>
+                                <p>{{ past_order.created_at.strftime('%d-%m-%Y') }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Сумма</h6>
+                                <p>{{ past_order.total }} руб.</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Статус заказа</h6>
+                                <p class="text-success">{{ past_order.status }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

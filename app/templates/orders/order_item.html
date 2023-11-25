@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %} Заказы {% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12 mx-auto">
+            <h3>Заказ: {{ order.id }}</h3>
+            <div class="red-divider"></div>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="col-1 text-center">Фото</th>
+                      <th scope="col" class="col-5 text-center">Наименование</th>
+                      <th scope="col" class="col-2 text-center">Цена, руб.</th>
+                      <th scope="col" class="col-2 text-center">Количество</th>
+                      <th scope="col" class="col-2 text-center">Сумма, руб.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in items %}
+                      <tr>
+                        <th scope="row">
+                            {% with image = item.product.product_images[0].image if item.product.product_iamges else 'noimage.jpg' %}
+                            <img src="{{ url_for('static', filename='products/' + image)}}" alt="{{ item.product.title }}" style="max-height: 100px; object-fit: contain;">
+                            {% endwith %}
+                        </th>
+                        <td>
+                          <a href="{{ url_for('products.get_product', product_id=item.product_id) }}" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
+                            <p>{{ item.product.title }}</p>
+                          </a>
+                        </td>
+                        <td>{{ item.product.price }}</td>
+                        <td class="d-flex justify-content-center">{{ item.quantity }}</td>
+                        <td>{{ item.product.price * item.quantity }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-md-10 d-flex justify-content-end">
+                    <h3>Сумма:</h3>
+                </div>
+                <div class="col-md-2 d-flex justify-content-end">
+                    <h4 style="margin-top: 4px;">{{ order.total }}</h4>
+                </div>
+            </div>
+            <h3>Информация о заказе</h3>
+            <div class="red-divider"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card align-items-center shadow d-flex flex-column mb-3">
+                        <div class="card-body col-md-12">
+                            <div class="row mb-3">
+                                <label for="colFormLabel" class="col-sm-2 col-form-label">Статус</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" value="{{ order.status }}" disabled style="background-color: white;">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="colFormLabel" class="col-sm-2 col-form-label">Телефон</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" value="{{ order.phone }}" disabled style="background-color: white;">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="colFormLabel" class="col-sm-2 col-form-label">Адрес</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" value="{{ order.address }}" disabled style="background-color: white;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card align-items-center shadow d-flex flex-column mb-3">
+                        <div class="card-body col-md-12">
+                            <div class="col-12">
+                                <label for="inputAddress" class="form-label">Примечание</label>
+                                <input type="text" class="form-control" value="{{ order.extra }}" disabled style="background-color: white;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
