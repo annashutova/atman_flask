@@ -17,7 +17,7 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = getenv('SQLALCHEMY_DATABASE_URI')
 
     # SMTP Gmail
-    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_SERVER = 'smtp-relay.brevo.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = getenv('MAIL_USERNAME')
@@ -32,7 +32,7 @@ class DevConfig(Config):
     """Sets development config variables."""
     FLASK_ENV = 'development'
     DEBUG = True
-    TESTING = True
+    # TESTING = True
 
 
 class ProdConfig(Config):
