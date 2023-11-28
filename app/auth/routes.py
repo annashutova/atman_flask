@@ -61,7 +61,7 @@ def login():
         try:
             form.validate_user()
         except Exception as ex:
-            flash(ex.message, 'danger')
+            flash(str(ex), 'danger')
             return redirect(url_for('auth.login'))
 
         user = form.get_user()
