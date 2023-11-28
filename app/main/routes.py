@@ -1,8 +1,10 @@
 """Routes of main blueprint."""
 from loguru import logger
 from app.main import bp
-from flask import request, redirect, url_for, render_template, current_app, session, jsonify
-from app.extensions import mail
+from app.main.forms import UserDataForm
+from flask import request, redirect, url_for, render_template, current_app, session, jsonify, flash
+from flask_login import current_user, login_required
+from app.extensions import mail, db
 from flask_mail import Message
 from app.models import Product, Category
 
@@ -48,6 +50,28 @@ def payment_delivery():
 @bp.route('/help')
 def help():
     return render_template('information/help.html')
+
+@bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+
+    form = UserDataForm(obj=current_user)
+    if form.validate_on_submit():
+        form_data = form.data
+
+        current_user.name = form_data.get('name')
+        current_user.email = form_data.get('email')
+        current_user.phone = form_data.get('phone')
+
+        db.session.commit()
+        flash('Данные успешно сохранены!', 'success')
+
+    for error in form.errors:
+        if not (form[error].name == 'phone' and form.data.get('phone') is None):
+            flash(f'{form[error].label.text}{form.errors[error][0]}', 'danger')
+    return render_template('profile.html', form=form)
 
 @bp.route("/search")
 def search():
